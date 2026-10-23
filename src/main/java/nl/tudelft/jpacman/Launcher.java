@@ -208,6 +208,7 @@ public class Launcher {
      *             When a resource could not be read.
      */
     public static void main(String[] args) throws IOException {
-        new Launcher().launch();
+        new Launcher().withMapFile("/demo-map.txt").launch();
+        // new Launcher().launch();
     }
 }

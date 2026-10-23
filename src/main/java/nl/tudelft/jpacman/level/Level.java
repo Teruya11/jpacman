@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import nl.tudelft.jpacman.board.Board;
 import nl.tudelft.jpacman.board.Direction;
 import nl.tudelft.jpacman.board.Square;
+import nl.tudelft.jpacman.board.SwitchSquare;
 import nl.tudelft.jpacman.board.Unit;
 import nl.tudelft.jpacman.npc.Ghost;
 
@@ -186,8 +187,15 @@ public class Level {
             if (destination.isAccessibleTo(unit)) {
                 List<Unit> occupants = destination.getOccupants();
                 unit.occupy(destination);
+
                 for (Unit occupant : occupants) {
                     collisions.collide(unit, occupant);
+                }
+
+                if (unit instanceof Player
+                    && ((Player) unit).isAlive()
+                    && destination instanceof SwitchSquare) {
+                    ((SwitchSquare) destination).activate();
                 }
             }
             updateObservers();

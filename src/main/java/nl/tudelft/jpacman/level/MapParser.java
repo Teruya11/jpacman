@@ -10,7 +10,11 @@ import java.util.List;
 import nl.tudelft.jpacman.PacmanConfigurationException;
 import nl.tudelft.jpacman.board.Board;
 import nl.tudelft.jpacman.board.BoardFactory;
+import nl.tudelft.jpacman.board.Circuit;
+import nl.tudelft.jpacman.board.Gate;
+import nl.tudelft.jpacman.board.GateSquare;
 import nl.tudelft.jpacman.board.Square;
+import nl.tudelft.jpacman.board.SwitchSquare;
 import nl.tudelft.jpacman.npc.Ghost;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -30,6 +34,15 @@ public class MapParser {
      * The factory that creates the squares and board.
      */
     private final BoardFactory boardCreator;
+
+    // Inclusions from GPT
+    private Circuit circuit1;
+    private Circuit circuit2;
+
+    private int switches1;
+    private int switches2;
+    private int gates1;
+    private int gates2;
 
     /**
      * Creates a new map parser.
@@ -62,6 +75,14 @@ public class MapParser {
      * @return The level as represented by this text.
      */
     public Level parseMap(char[][] map) {
+        circuit1 = new Circuit(1);
+        circuit2 = new Circuit(2);
+
+        switches1 = 0;
+        switches2 = 0;
+        gates1 = 0;
+        gates2 = 0;
+        
         int width = map.length;
         int height = map[0].length;
 
@@ -71,6 +92,7 @@ public class MapParser {
         List<Square> startPositions = new ArrayList<>();
 
         makeGrid(map, width, height, grid, ghosts, startPositions);
+        validateCircuits();
 
         Board board = boardCreator.createBoard(grid);
         return levelCreator.createLevel(board, ghosts, startPositions);
@@ -128,6 +150,29 @@ public class MapParser {
                 Square playerSquare = boardCreator.createGround();
                 grid[x][y] = playerSquare;
                 startPositions.add(playerSquare);
+                break;
+            case '1':
+                grid[x][y] = boardCreator.createSwitch(circuit1);
+                switches1++;
+                break;
+
+            case '2':
+                grid[x][y] = boardCreator.createSwitch(circuit2);
+                switches2++;
+                break;
+
+            case 'a':
+                Gate gateA = new Gate();
+                circuit1.addGate(gateA);
+                grid[x][y] = boardCreator.createGate(gateA, 1);
+                gates1++;
+                break;
+
+            case 'b':
+                Gate gateB = new Gate();
+                circuit2.addGate(gateB);
+                grid[x][y] = boardCreator.createGate(gateB, 2);
+                gates2++;
                 break;
             default:
                 throw new PacmanConfigurationException("Invalid character at "
@@ -257,5 +302,24 @@ public class MapParser {
      */
     protected BoardFactory getBoardCreator() {
         return boardCreator;
+    }
+
+    private void validateCircuits() {
+        boolean usesCircuitElements =
+            switches1 + switches2 + gates1 + gates2 > 0;
+
+        if (!usesCircuitElements) {
+            return;
+        }
+
+        if (switches1 == 0 || gates1 == 0) {
+            throw new PacmanConfigurationException(
+                "Circuit 1 must have at least one switch and one gate.");
+        }
+
+        if (switches2 == 0 || gates2 == 0) {
+            throw new PacmanConfigurationException(
+                "Circuit 2 must have at least one switch and one gate.");
+        }
     }
 }

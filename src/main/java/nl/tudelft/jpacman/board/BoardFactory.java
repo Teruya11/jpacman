@@ -76,6 +76,29 @@ public class BoardFactory {
     }
 
     /**
+     * Creates a square controlled by a gate.
+     *
+     * @param gate the gate controlling access
+     * @param circuitId the circuit identifier
+     * @return the gate square
+     */
+    public GateSquare createGate(Gate gate, int circuitId) {
+        return new GateSquare(
+            gate, circuitId, sprites.getGroundSprite()
+        );
+    }
+
+    /**
+     * Creates a switch connected to a circuit.
+     *
+     * @param circuit the circuit controlled by the switch
+     * @return the switch square
+     */
+    public SwitchSquare createSwitch(Circuit circuit) {
+        return new SwitchSquare(circuit, sprites.getGroundSprite());
+    }
+
+    /**
      * A wall is a square that is inaccessible to anyone.
      *
      * @author Jeroen Roosen
