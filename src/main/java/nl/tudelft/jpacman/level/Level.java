@@ -12,6 +12,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import nl.tudelft.jpacman.board.Board;
+import nl.tudelft.jpacman.board.Circuit;
 import nl.tudelft.jpacman.board.Direction;
 import nl.tudelft.jpacman.board.Square;
 import nl.tudelft.jpacman.board.SwitchSquare;
@@ -75,6 +76,11 @@ public class Level {
     private final CollisionMap collisions;
 
     /**
+     * The table of possible collisions between units.
+     */
+    private final List<Circuit> circuits;
+
+    /**
      * The objects observing this level.
      */
     private final Set<LevelObserver> observers;
@@ -91,11 +97,17 @@ public class Level {
      * @param collisionMap
      *            The collection of collisions that should be handled.
      */
-    public Level(Board board, List<Ghost> ghosts, List<Square> startPositions,
-                 CollisionMap collisionMap) {
+    public Level(
+        Board board,
+        List<Ghost> ghosts,
+        List<Square> startPositions,
+        CollisionMap collisionMap,
+        List<Circuit> circuits
+    ) {
         assert board != null;
         assert ghosts != null;
         assert startPositions != null;
+        assert circuits != null;
 
         this.board = board;
         this.inProgress = false;
@@ -107,6 +119,7 @@ public class Level {
         this.startSquareIndex = 0;
         this.players = new ArrayList<>();
         this.collisions = collisionMap;
+        this.circuits = circuits;
         this.observers = new HashSet<>();
     }
 
@@ -214,6 +227,9 @@ public class Level {
             startNPCs();
             inProgress = true;
             updateObservers();
+            for (Circuit circuit : this.circuits) {
+                circuit.resumePhaseInversion();
+            }
         }
     }
 
@@ -228,6 +244,9 @@ public class Level {
             }
             stopNPCs();
             inProgress = false;
+            for (Circuit circuit : this.circuits) {
+                circuit.stopPhaseInversion();
+            }
         }
     }
 

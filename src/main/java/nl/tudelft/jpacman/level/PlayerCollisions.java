@@ -41,6 +41,9 @@ public class PlayerCollisions implements CollisionMap {
         else if (mover instanceof Pellet) {
             pelletColliding((Pellet) mover, collidedOn);
         }
+        else if (mover instanceof PhaseInverterPellet) {
+            phaseInverterColliding((PhaseInverterPellet) mover, collidedOn);
+        }
     }
 
     private void playerColliding(Player player, Unit collidedOn) {
@@ -49,6 +52,9 @@ public class PlayerCollisions implements CollisionMap {
         }
         if (collidedOn instanceof Pellet) {
             playerVersusPellet(player, (Pellet) collidedOn);
+        }
+        if (collidedOn instanceof PhaseInverterPellet) {
+            playerVersusPhaseInverter(player, (PhaseInverterPellet) collidedOn);
         }
     }
 
@@ -64,6 +70,11 @@ public class PlayerCollisions implements CollisionMap {
         }
     }
 
+    private void phaseInverterColliding(PhaseInverterPellet phaseInverter, Unit collidedOn) {
+        if (collidedOn instanceof Player) {
+            playerVersusPhaseInverter((Player) collidedOn, phaseInverter);
+        }
+    }
 
     /**
      * Actual case of player bumping into ghost or vice versa.
@@ -92,4 +103,16 @@ public class PlayerCollisions implements CollisionMap {
         pellet.leaveSquare();
     }
 
+    /**
+     * Jogador ativando o inversor de fase
+     *
+     * @param player
+     *           The player involved in the collision.
+     * @param phaseInverter
+     *           The phase inverter involved in the collision.
+     */
+    public void playerVersusPhaseInverter(Player player, PhaseInverterPellet phaseInverter) {
+        phaseInverter.leaveSquare();
+        phaseInverter.invertCircuit();
+    }
 }

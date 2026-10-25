@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import nl.tudelft.jpacman.board.Board;
+import nl.tudelft.jpacman.board.Circuit;
 import nl.tudelft.jpacman.board.Direction;
 import nl.tudelft.jpacman.board.Square;
 import nl.tudelft.jpacman.npc.Ghost;
@@ -82,12 +83,17 @@ public class LevelFactory {
      *            A list of squares from which players may start the game.
      * @return A new level for the board.
      */
-    public Level createLevel(Board board, List<Ghost> ghosts, List<Square> startPositions) {
+    public Level createLevel(
+        Board board,
+        List<Ghost> ghosts,
+        List<Square> startPositions,
+        List<Circuit> circuits
+    ) {
 
         // We'll adopt the simple collision map for now.
         CollisionMap collisionMap = new PlayerCollisions(pointCalculator);
 
-        return new Level(board, ghosts, startPositions, collisionMap);
+        return new Level(board, ghosts, startPositions, collisionMap, circuits);
     }
 
     /**
@@ -119,6 +125,13 @@ public class LevelFactory {
      */
     public Pellet createPellet() {
         return new Pellet(PELLET_VALUE, sprites.getPelletSprite());
+    }
+
+    public PhaseInverterPellet createPhasePellet(Circuit circuit) {
+        return new PhaseInverterPellet(
+            circuit,
+            sprites.getPhasePelletSprite(circuit.getId())
+        );
     }
 
     /**

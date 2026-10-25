@@ -2,6 +2,10 @@ package nl.tudelft.jpacman.board;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledFuture;
 
 /**
  * Controls the open/close command shared by a group of gates.
@@ -11,6 +15,10 @@ public final class Circuit {
     private final int id;
     private final List<Gate> gates = new ArrayList<>();
     private boolean open;
+    private long timeoutMillis = 5000;
+
+    private final ScheduledExecutorService scheduler;
+    private ScheduledFuture<?> disableFuture;
 
     /**
      * Creates a circuit that starts closed.
@@ -26,6 +34,7 @@ public final class Circuit {
 
         this.id = id;
         this.open = false;
+        this.scheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
     public int getId() {
@@ -71,5 +80,59 @@ public final class Circuit {
             }
         }
     }
+
+    // Chamado na coleta
+    public void startPhaseInversion() {
+        if (this.disableFuture == null) {
+            this.toggle();
+        } else {
+            this.disableFuture.cancel(true);
+        }
+
+        this.disableFuture = scheduler.schedule(
+            new DisableInversionTask(scheduler, this),
+            this.timeoutMillis,
+            TimeUnit.MILLISECONDS
+        );
+    }
+
+    // Quando o jogo é pausado
+    public void stopPhaseInversion() {
+        if (this.disableFuture == null)
+            return;
+
+        this.timeoutMillis = this.disableFuture.getDelay(TimeUnit.MILLISECONDS);
+        this.disableFuture.cancel(true);
+    }
+
+    // Quando o jogo é despausado?
+    public void resumePhaseInversion() {
+        if (this.disableFuture == null)
+            return;
+
+        this.disableFuture = scheduler.schedule(
+            new DisableInversionTask(scheduler, this),
+            this.timeoutMillis,
+            TimeUnit.MILLISECONDS
+        );
+        this.timeoutMillis = 5000;
+    }
+
+    private final class DisableInversionTask implements Runnable {
+        private final ScheduledExecutorService scheduler;
+        private final Circuit circuit;
+
+        DisableInversionTask(ScheduledExecutorService scheduler, Circuit circuit) {
+            this.scheduler = scheduler;
+            this.circuit = circuit;
+        }
+
+        @Override
+        public void run() {
+            this.circuit.toggle();
+            this.circuit.disableFuture = null;
+        }
+    }
 }
+
 
